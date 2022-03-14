@@ -13,5 +13,6 @@ module.exports = {
   arePointsInside: require('./arePointsInside'),
   create: require('./create'),
   flip: require('./flip'),
+  isConvex: require('./isConvex'),
   measureArea: require('./measureArea')
 }

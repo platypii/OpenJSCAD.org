@@ -35,7 +35,7 @@ test('torus (complex options)', (t) => {
   const obs = torus({ innerRadius: 1, outerRadius: 5, innerSegments: 32, outerSegments: 72, startAngle: TAU / 4, outerRotation: TAU / 4 })
   const pts = geom3.toPoints(obs)
   t.notThrows(() => geom3.validate(obs))
-  t.is(pts.length, 1212)
+  t.is(pts.length, 1154)
 
   const bounds = measureBoundingBox(obs)
   const expectedBounds = [[-6, 0, -1], [0, 6, 1]]

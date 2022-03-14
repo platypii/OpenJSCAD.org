@@ -1,3 +1,4 @@
+const poly2 = require('../../../geometries/poly2')
 const poly3 = require('../../../geometries/poly3')
 const earcut = require('../earcut')
 const PolygonHierarchy = require('../earcut/polygonHierarchy')
@@ -13,6 +14,13 @@ const toPolygons = (slice) => {
 
   const polygons = []
   hierarchy.roots.forEach(({ solid, holes }) => {
+    // special case for convex solid with no holes
+    if (holes.length === 0 && poly2.isConvex(poly2.create(solid))) {
+      const originalPoly = solid.map((s) => hierarchy.to3D(s))
+      polygons.push(poly3.fromPointsAndPlane(originalPoly, hierarchy.plane))
+      return
+    }
+
     // hole indices
     let index = solid.length
     const holesIndex = []

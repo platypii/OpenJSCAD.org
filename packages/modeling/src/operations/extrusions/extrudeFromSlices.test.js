@@ -25,12 +25,10 @@ test('extrudeFromSlices (defaults)', (t) => {
     [[-10, 10, 0], [-10, -10, 1], [-10, 10, 1]],
     [[-10, -10, 0], [10, -10, 0], [10, -10, 1]],
     [[-10, -10, 0], [10, -10, 1], [-10, -10, 1]],
-    [[-10, -10, 1], [10, -10, 1], [10, 10, 1]],
-    [[10, 10, 1], [-10, 10, 1], [-10, -10, 1]],
-    [[10, 10, 0], [10, -10, 0], [-10, -10, 0]],
-    [[-10, -10, 0], [-10, 10, 0], [10, 10, 0]]
+    [[10, 10, 1], [-10, 10, 1], [-10, -10, 1], [10, -10, 1]],
+    [[10, -10, 0], [-10, -10, 0], [-10, 10, 0], [10, 10, 0]]
   ]
-  t.is(pts.length, 12)
+  t.is(pts.length, 10)
   t.true(comparePolygonsAsPoints(pts, exp))
 
   const poly2 = poly3.create([[10, 10, 0], [-10, 10, 0], [-10, -10, 0], [10, -10, 0]])
@@ -38,7 +36,7 @@ test('extrudeFromSlices (defaults)', (t) => {
   pts = geom3.toPoints(geometry3)
 
   t.notThrows(() => geom3.validate(geometry3))
-  t.is(pts.length, 12)
+  t.is(pts.length, 10)
   t.true(comparePolygonsAsPoints(pts, exp))
 })
 
@@ -91,7 +89,7 @@ test('extrudeFromSlices (same shape, changing dimensions)', (t) => {
   const pts = geom3.toPoints(geometry3)
   // expected to throw because capEnd is false (non-closed geometry)
   t.throws(() => geom3.validate(geometry3))
-  t.is(pts.length, 26)
+  t.is(pts.length, 25)
 })
 
 test('extrudeFromSlices (changing shape, changing dimensions)', (t) => {
@@ -109,7 +107,7 @@ test('extrudeFromSlices (changing shape, changing dimensions)', (t) => {
   )
   const pts = geom3.toPoints(geometry3)
   t.notThrows.skip(() => geom3.validate(geometry3))
-  t.is(pts.length, 304)
+  t.is(pts.length, 298)
 })
 
 test('extrudeFromSlices (holes)', (t) => {
