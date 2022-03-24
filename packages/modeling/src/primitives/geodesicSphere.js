@@ -72,10 +72,11 @@ const geodesicSphere = (options) => {
         const s1 = (j + 1) / (frequency - i)
         const s2 = frequency - i - 1 ? j / (frequency - i - 1) : 1
         const q = []
+        const fr = frequency
 
-        q[0] = mix3(mix3(p1, p2, s0), p3, t0)
-        q[1] = mix3(mix3(p1, p2, s1), p3, t0)
-        q[2] = mix3(mix3(p1, p2, s2), p3, t1)
+        q[0] = mix3(mix3(p1, p2, s0, fr), p3, t0, fr)
+        q[1] = mix3(mix3(p1, p2, s1, fr), p3, t0, fr)
+        q[2] = mix3(mix3(p1, p2, s2, fr), p3, t1, fr)
 
         // -- normalize
         for (let k = 0; k < 3; k++) {
@@ -89,9 +90,9 @@ const geodesicSphere = (options) => {
 
         if (j < frequency - i - 1) {
           const s3 = frequency - i - 1 ? (j + 1) / (frequency - i - 1) : 1
-          q[0] = mix3(mix3(p1, p2, s1), p3, t0)
-          q[1] = mix3(mix3(p1, p2, s3), p3, t1)
-          q[2] = mix3(mix3(p1, p2, s2), p3, t1)
+          q[0] = mix3(mix3(p1, p2, s1, fr), p3, t0, fr)
+          q[1] = mix3(mix3(p1, p2, s3, fr), p3, t1, fr)
+          q[2] = mix3(mix3(p1, p2, s2, fr), p3, t1, fr)
 
           // -- normalize
           for (let k = 0; k < 3; k++) {
@@ -108,8 +109,8 @@ const geodesicSphere = (options) => {
     return { points: c, triangles: f, offset: n }
   }
 
-  const mix3 = (a, b, f) => {
-    const _f = 1 - f
+  const mix3 = (a, b, f, freq) => {
+    const _f = (freq - f * freq) / freq
     const c = []
     for (let i = 0; i < 3; i++) {
       c[i] = a[i] * _f + b[i] * f

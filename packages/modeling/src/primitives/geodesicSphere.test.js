@@ -48,6 +48,12 @@ test('geodesicSphere (options)', (t) => {
   obs = geodesicSphere({ radius: 5, frequency: 18 })
   pts = geom3.toPoints(obs)
 
-  t.notThrows.skip(() => geom3.validate(obs))
+  t.notThrows(() => geom3.validate(obs))
   t.is(pts.length, 180)
+
+  // test high frequency
+  obs = geodesicSphere({ radius: 5, frequency: 126 })
+  pts = geom3.toPoints(obs)
+  t.notThrows(() => geom3.validate(obs))
+  t.is(pts.length, 8820)
 })
