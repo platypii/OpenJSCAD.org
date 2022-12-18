@@ -1,12 +1,7 @@
 const flatten = require('../../utils/flatten')
 
-const geom3 = require('../../geometries/geom3')
-
-const measureEpsilon = require('../../measurements/measureEpsilon')
-
-const fromFakePolygons = require('./fromFakePolygons')
-const to3DWalls = require('./to3DWalls')
-const subtractGeom3 = require('./subtractGeom3')
+const boolean = require('./martinez')
+const { DIFFERENCE } = require('./martinez/operation')
 
 /*
  * Return a new 2D geometry representing space in the first geometry but
@@ -16,12 +11,13 @@ const subtractGeom3 = require('./subtractGeom3')
  */
 const subtract = (...geometries) => {
   geometries = flatten(geometries)
-  const newgeometries = geometries.map((geometry) => to3DWalls({ z0: -1, z1: 1 }, geometry))
 
-  const newgeom3 = subtractGeom3(newgeometries)
-  const epsilon = measureEpsilon(newgeom3)
+  let newgeometry = geometries.shift()
+  geometries.forEach((geometry) => {
+    newgeometry = boolean(newgeometry, geometry, DIFFERENCE)
+  })
 
-  return fromFakePolygons(epsilon, geom3.toPolygons(newgeom3))
+  return newgeometry
 }
 
 module.exports = subtract

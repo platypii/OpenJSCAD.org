@@ -1,12 +1,7 @@
 const flatten = require('../../utils/flatten')
 
-const geom3 = require('../../geometries/geom3')
-
-const measureEpsilon = require('../../measurements/measureEpsilon')
-
-const fromFakePolygons = require('./fromFakePolygons')
-const to3DWalls = require('./to3DWalls')
-const unionGeom3 = require('./unionGeom3')
+const boolean = require('./martinez')
+const { UNION } = require('./martinez/operation')
 
 /*
  * Return a new 2D geometry representing the total space in the given 2D geometries.
@@ -15,12 +10,13 @@ const unionGeom3 = require('./unionGeom3')
  */
 const union = (...geometries) => {
   geometries = flatten(geometries)
-  const newgeometries = geometries.map((geometry) => to3DWalls({ z0: -1, z1: 1 }, geometry))
 
-  const newgeom3 = unionGeom3(newgeometries)
-  const epsilon = measureEpsilon(newgeom3)
+  let newgeometry = geometries.shift()
+  geometries.forEach((geometry) => {
+    newgeometry = boolean(newgeometry, geometry, UNION)
+  })
 
-  return fromFakePolygons(epsilon, geom3.toPolygons(newgeom3))
+  return newgeometry
 }
 
 module.exports = union
