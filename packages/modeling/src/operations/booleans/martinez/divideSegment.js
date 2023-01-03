@@ -1,5 +1,6 @@
 import { SweepEvent } from './sweepEvent.js'
 import { compareEvents } from './compareEvents.js'
+import { edgeName, name } from './logging.js'
 
 /**
  * @param {SweepEvent} se
@@ -8,6 +9,7 @@ import { compareEvents } from './compareEvents.js'
  * @return {Queue}
  */
 export const divideSegment = (se, p, queue) => {
+  console.log(`split ${edgeName(se)} at ${name(p)}`)
   const r = new SweepEvent(p, false, se, se.isSubject)
   const l = new SweepEvent(p, true, se.otherEvent, se.isSubject)
 

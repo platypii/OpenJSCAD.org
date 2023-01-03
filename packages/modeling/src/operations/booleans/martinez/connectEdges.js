@@ -6,8 +6,11 @@
 
 import { compareEvents } from './compareEvents.js'
 import { Contour } from './contour.js'
+import { compactEvent, edgeName, edgeShort, name } from './logging.js'
 
 /**
+ * Takes an array of sorted events and returns a re-ordered version of the
+ * array in which the events are processed in the correct order.
  * @param {Array.<SweepEvent>} sortedEvents
  * @return {Array.<SweepEvent>}
  */
@@ -16,6 +19,11 @@ const orderEvents = (sortedEvents) => {
   const resultEvents = []
   for (i = 0, len = sortedEvents.length; i < len; i++) {
     event = sortedEvents[i]
+    console.log('sweep2', edgeShort(event))
+    const name = edgeName(event)
+    if (name === 'CE' || name === 'EC') {
+      // console.log('sweep2', name, compactEvent(event, sortedEvents))
+    }
     if ((event.left && event.inResult) ||
       (!event.left && event.otherEvent.inResult)) {
       resultEvents.push(event)
@@ -90,6 +98,9 @@ const nextPos = (pos, resultEvents, processed, origPos) => {
 }
 
 const initializeContourFromContext = (event, contours, contourId) => {
+  const e = event
+  console.log(`initializeContourFromContext`, edgeName(e))
+
   const contour = new Contour()
   if (event.prevInResult != null) {
     const prevInResult = event.prevInResult
@@ -100,6 +111,7 @@ const initializeContourFromContext = (event, contours, contourId) => {
     const lowerContourId = prevInResult.outputContourId
     const lowerResultTransition = prevInResult.resultTransition
     if (lowerContourId < 0) {
+      console.log('Error: invalid lowerContourId', lowerContourId)
       contour.holeOf = null
       contour.depth = 0
     } else if (lowerResultTransition > 0) {
@@ -138,8 +150,12 @@ const initializeContourFromContext = (event, contours, contourId) => {
  * @return {Array.<*>} polygons
  */
 export const connectEdges = (sortedEvents) => {
+  // console.log(`connectEdges sortedEvents ${sortedEvents.map(edgeName)}`)
+
   const resultEvents = orderEvents(sortedEvents)
   const len = resultEvents.length
+
+  console.log('result segments', resultEvents.map(edgeName).join())
 
   // "false"-filled array
   const processed = {}
@@ -149,6 +165,7 @@ export const connectEdges = (sortedEvents) => {
     if (processed[i]) {
       continue
     }
+    console.log('start contour', edgeName(resultEvents[i]))
 
     const contourId = contours.length
     const contour = initializeContourFromContext(resultEvents[i], contours, contourId)
@@ -168,6 +185,9 @@ export const connectEdges = (sortedEvents) => {
     contour.points.push(initial)
 
     while (true) {
+      const e = resultEvents[pos]
+      console.log('walk output', edgeName(e))
+
       markAsProcessed(pos)
 
       pos = resultEvents[pos].otherPos
@@ -180,6 +200,13 @@ export const connectEdges = (sortedEvents) => {
       if (pos === origPos || pos >= resultEvents.length || !resultEvents[pos]) {
         break
       }
+    }
+
+    console.log('output contour', contour.points.map(name).join(''))
+    const unprocessed = resultEvents.filter((e, i) => !processed[i])
+    console.log('unprocessed edges:', unprocessed.map((e) => edgeName(e)).join())
+    if (contour.points.length < 3) {
+      console.log('Error: invalid contour', contour.points.map(name).join(''))
     }
 
     contours.push(contour)

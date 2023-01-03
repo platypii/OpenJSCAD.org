@@ -12,6 +12,7 @@ import {
   INTERSECTION,
   DIFFERENCE
 } from './operation.js'
+import { compactEvent, edgeName, edgeShort, name } from './logging.js'
 
 export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, operation) => {
   const sweepLine = new Tree(compareSegments)
@@ -24,7 +25,11 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
   while (eventQueue.length !== 0) {
     let event = eventQueue.pop()
     sortedEvents.push(event)
-
+    console.log('sweep1', edgeShort(event))
+    const name = edgeName(event)
+    if (name === 'CE' || name === 'EC') {
+      // console.log('sweep1', name, compactEvent(event, sortedEvents))
+    }
     // optimization by bboxes for intersection and difference goes here
     if ((operation === INTERSECTION && event.point[0] > rightBound) ||
         (operation === DIFFERENCE && event.point[0] > sbbox[2])) {
@@ -52,6 +57,7 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
 
       if (prev) {
         if (possibleIntersection(prev.key, event, eventQueue) === 2) {
+          // console.log("possibleIntersection 2", compactEvent(event, sortedEvents))
           let prevprev = prev
           if (prevprev !== begin) prevprev = sweepLine.prev(prevprev)
           else prevprev = null

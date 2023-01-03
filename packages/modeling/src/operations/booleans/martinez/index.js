@@ -97,6 +97,9 @@ const fromOutlines = (outlines) => {
     if (vec2.equals(outline[0], outline[outline.length - 1])) {
       outline.pop() // first == last point
     }
+    // if (outline.length < 3) {
+    //   console.log("Error: invalid outline", outline.map(name).join())
+    // }
   })
   // Martinez sometime returns empty outlines, filter them out
   outlines = outlines.filter((o) => o.length >= 3)
@@ -121,9 +124,26 @@ export const boolean = (subjectGeom, clippingGeom, operation) => {
   if (trivial) {
     return trivial
   }
+  // console.time('subdivide edges')
   const sortedEvents = subdivideSegments(eventQueue, subject, clipping, sbbox, cbbox, operation)
+  // console.timeEnd('subdivide edges')
 
+  // console.log(`sortedEvents = ${sortedEvents.map((e) => `${name(e.point)}${name(e.otherEvent.point)}`)}`)
+  // sortedEvents.forEach((e, i) => {
+  //   const compact = compactEvent(e)
+  //   // console.log(`sortedEvents[${i}]`, e)
+  //   // console.log(`sortedEvents[${i}].outputContourId`, e.outputContourId)
+  //   // console.log(`sortedEvents[${i}].edge`, compact.edgeName)
+  //   // console.log(`sortedEvents[${i}]`, compact)
+  // })
+
+  // console.time('connect vertices')
   const contours = connectEdges(sortedEvents, operation)
+  // console.timeEnd('connect vertices')
+
+  // sortedEvents.forEach((e, i) => {
+  //   console.log(`sortedEvents[${i}].outputContourId`, e.outputContourId)
+  // })
 
   // Convert contours to geom2
   const polygons = []
