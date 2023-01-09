@@ -13,6 +13,7 @@ import {
   SAME_TRANSITION,
   DIFFERENT_TRANSITION
 } from './edgeType.js'
+import { edgeName } from './logging.js'
 
 /**
  * @param {SweepEvent} se1
@@ -21,6 +22,8 @@ import {
  * @return {Number}
  */
 export const possibleIntersection = (se1, se2, queue) => {
+  const name1 = edgeName(se1)
+  const name2 = edgeName(se2)
   // that disallows self-intersecting polygons,
   // did cost us half a day, so I'll leave it
   // out of respect
@@ -31,6 +34,11 @@ export const possibleIntersection = (se1, se2, queue) => {
   )
 
   const nIntersections = inter ? inter.length : 0
+
+  if (name2 === 'GB') {
+    console.log(`possibleIntersection ${name1} ${name2} nIntersections`, nIntersections)
+  }
+
   if (nIntersections === 0) return 0 // no intersection
 
   // the line segments intersect at an endpoint of both line segments
@@ -53,10 +61,15 @@ export const possibleIntersection = (se1, se2, queue) => {
 
     // if the intersection point is not an endpoint of se2
     if (!equals(se2.point, inter[0]) && !equals(se2.otherEvent.point, inter[0])) {
+      if (name2 === 'GB') console.log(`possibleIntersection middle se2 ${name2}`)
       divideSegment(se2, inter[0], queue)
+      // Note: se2 is no long the same edge
+      if (name2 === 'GB') console.log(`possibleIntersection middle se2 ${name2} -> ${edgeName(se2)}`)
     }
     return 1
   }
+
+  if (name2 === 'GB') console.log("possibleIntersection 4")
 
   // The line segments associated to se1 and se2 overlap
   const events = []

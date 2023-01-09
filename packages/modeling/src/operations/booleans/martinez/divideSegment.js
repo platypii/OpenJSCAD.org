@@ -1,6 +1,6 @@
 import { SweepEvent } from './sweepEvent.js'
 import { compareEvents } from './compareEvents.js'
-import { edgeName, name } from './logging.js'
+import { edgeName, edgeShort, name } from './logging.js'
 
 /**
  * @param {SweepEvent} se
@@ -27,8 +27,13 @@ export const divideSegment = (se, p, queue) => {
   se.otherEvent.otherEvent = l
   se.otherEvent = r
 
+  // console.log(`add ${edgeShort(l)}`)
+  // console.log(`add ${edgeShort(r)}`)
+
   queue.push(l)
   queue.push(r)
+
+  console.log("queue", queue.data.map(edgeName).join())
 
   return queue
 }

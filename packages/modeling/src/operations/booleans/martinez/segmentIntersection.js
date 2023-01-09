@@ -5,6 +5,7 @@
  */
 
 import { dot as dotProduct } from '../../../maths/vec2/index.js'
+import { name } from './logging.js'
 
 /**
  * Finds the magnitude of the cross product of two vectors (if we pretend
@@ -35,6 +36,12 @@ const crossProduct = (a, b) => (a[0] * b[1]) - (a[1] * b[0])
  * Otherwise, null.
  */
 export const segmentIntersection = (a1, a2, b1, b2, noEndpointTouch) => {
+  const name1 = name(a1) + name(a2)
+  const name2 = name(b1) + name(b2)
+  if (name1 === 'EB' && name2 === 'GB') {
+    console.log(`intersection ${name1} ${name2}`)
+  }
+
   // The algorithm expects our lines in the form P + sd, where P is a point,
   // s is on the interval [0, 1], and d is a vector.
   // We are passed two points. P can be the first point of each pair. The
@@ -56,6 +63,8 @@ export const segmentIntersection = (a1, a2, b1, b2, noEndpointTouch) => {
   let sqrKross = kross * kross
   const sqrLenA = dotProduct(va, va)
   // const sqrLenB  = dotProduct(vb, vb)
+
+  if (name1 === 'EB' && name2 === 'GB') console.log(`intersection kross`, kross)
 
   // Check for line intersection. This works because of the properties of the
   // cross product -- specifically, two vectors are parallel if and only if the

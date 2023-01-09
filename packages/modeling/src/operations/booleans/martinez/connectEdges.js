@@ -19,7 +19,7 @@ const orderEvents = (sortedEvents) => {
   const resultEvents = []
   for (i = 0, len = sortedEvents.length; i < len; i++) {
     event = sortedEvents[i]
-    console.log('sweep2', edgeShort(event))
+    // console.log('sweep2', edgeShort(event))
     const name = edgeName(event)
     if (name === 'CE' || name === 'EC') {
       // console.log('sweep2', name, compactEvent(event, sortedEvents))
@@ -150,7 +150,7 @@ const initializeContourFromContext = (event, contours, contourId) => {
  * @return {Array.<*>} polygons
  */
 export const connectEdges = (sortedEvents) => {
-  // console.log(`connectEdges sortedEvents ${sortedEvents.map(edgeName)}`)
+  console.log(`connectEdges sortedEvents ${sortedEvents.map(edgeName)}`)
 
   const resultEvents = orderEvents(sortedEvents)
   const len = resultEvents.length
@@ -165,7 +165,7 @@ export const connectEdges = (sortedEvents) => {
     if (processed[i]) {
       continue
     }
-    console.log('start contour', edgeName(resultEvents[i]))
+    // console.log('start contour', edgeName(resultEvents[i]))
 
     const contourId = contours.length
     const contour = initializeContourFromContext(resultEvents[i], contours, contourId)

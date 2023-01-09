@@ -31,7 +31,9 @@ export const name = (point) => {
     [4, 1],
     [0, 1],
     [3.477592250072517, 0.7836116248912244],
-    [2.564081902288895, 0.8404535446987661]
+    [2.564081902288895, 0.8404535446987661],
+    [3.05083120710486, 0.8101662414209719],
+    [2, 0.75],
   ]
 
   // Find the index of the point in the points array
@@ -42,10 +44,11 @@ export const name = (point) => {
   }
 
   // Return the letter corresponding to the index
-  return "ABCDEF"[index]
+  return "ABCDEFGA"[index]
 }
 
 export const edgeName = (e) => {
+  const subj = e.isSubject ? 'S' : 'C' // TODO: how to get in other impl?
   return `${name(e.point)}${name(e.otherEvent.point)}`
 }
 
