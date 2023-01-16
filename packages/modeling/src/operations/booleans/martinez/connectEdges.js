@@ -99,7 +99,7 @@ const nextPos = (pos, resultEvents, processed, origPos) => {
 
 const initializeContourFromContext = (event, contours, contourId) => {
   const e = event
-  console.log(`initializeContourFromContext`, edgeName(e))
+  // console.log(`initializeContourFromContext`, edgeName(e))
 
   const contour = new Contour()
   if (event.prevInResult != null) {

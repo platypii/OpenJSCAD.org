@@ -27,8 +27,9 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
     sortedEvents.push(event)
     console.log('sweep1', edgeShort(event))
     const name = edgeName(event)
-    if (name === 'CE' || name === 'EC') {
-      // console.log('sweep1', name, compactEvent(event, sortedEvents))
+    if (name === 'JF') {
+      console.log(`sweep1 ${name} y no split?`)
+      // console.log('sweep1 y no split?', name, compactEvent(event, sortedEvents))
     }
     // optimization by bboxes for intersection and difference goes here
     if ((operation === INTERSECTION && event.point[0] > rightBound) ||
