@@ -35,6 +35,13 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
       console.log(`sweep1 ${name} y no split?`)
       // console.log('sweep1 y no split?', name, compactEvent(event, sortedEvents))
       eventQueue.requeue()
+      let n = sweepLine._root
+      const active = []
+      while (n) {
+        active.push(n.key)
+        n = sweepLine.next(n)
+      }
+      console.log("tree", active.map(edgeName).join())
     }
     // optimization by bboxes for intersection and difference goes here
     if ((operation === INTERSECTION && event.point[0] > rightBound) ||
