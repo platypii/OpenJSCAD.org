@@ -66,6 +66,9 @@ const splay = (i, t, comparator) => {
   return t
 }
 
+/*
+ * Inserts a new node with key i and data into a given tree t.
+ */
 const insert = (i, data, t, comparator) => {
   const node = new Node(i, data)
 
@@ -88,6 +91,9 @@ const insert = (i, data, t, comparator) => {
   return node
 }
 
+/*
+ * Splits a given tree v into two parts, left and right, based on a given key.
+ */
 const split = (key, v, comparator) => {
   let left = null
   let right = null
@@ -111,6 +117,9 @@ const split = (key, v, comparator) => {
   return { left, right }
 }
 
+/*
+ * Merges two given trees, left and right.
+ */
 const merge = (left, right, comparator) => {
   if (right === null) return left
   if (left === null) return right
