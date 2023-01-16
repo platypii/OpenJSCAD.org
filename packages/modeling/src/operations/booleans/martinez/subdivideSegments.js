@@ -27,9 +27,14 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
     sortedEvents.push(event)
     console.log('sweep1', edgeShort(event))
     const name = edgeName(event)
+    if (name === 'CD') {
+      // console.log(`sweep1 otherEvent ${edgeName(event.otherEvent)}`)
+      // console.log(`sweep1 prev ${edgeName(sweepLine.prev(event))}`)
+    }
     if (name === 'JF') {
       console.log(`sweep1 ${name} y no split?`)
       // console.log('sweep1 y no split?', name, compactEvent(event, sortedEvents))
+      eventQueue.requeue()
     }
     // optimization by bboxes for intersection and difference goes here
     if ((operation === INTERSECTION && event.point[0] > rightBound) ||
@@ -50,6 +55,7 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
       let prevprevEvent
       computeFields(event, prevEvent, operation)
       if (next) {
+        if (name === 'JF' || name === 'CD') console.log(`sweep1 ${name} next`, edgeName(next.key))
         if (possibleIntersection(event, next.key, eventQueue) === 2) {
           computeFields(event, prevEvent, operation)
           computeFields(next.key, event, operation)
@@ -57,6 +63,7 @@ export const subdivideSegments = (eventQueue, subject, clipping, sbbox, cbbox, o
       }
 
       if (prev) {
+        if (name === 'JF' || name === 'CD') console.log(`sweep1 ${name} prev`, edgeName(prev.key))
         if (possibleIntersection(prev.key, event, eventQueue) === 2) {
           // console.log("possibleIntersection 2", compactEvent(event, sortedEvents))
           let prevprev = prev

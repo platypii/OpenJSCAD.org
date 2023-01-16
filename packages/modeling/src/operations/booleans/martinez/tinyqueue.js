@@ -1,3 +1,4 @@
+import { edgeName } from './logging.js'
 /*
  * The smallest and simplest binary heap priority queue in JavaScript
  * Copyright (c) 2017, Vladimir Agafonkin
@@ -13,6 +14,15 @@ export class Queue {
     if (this.length > 0) {
       for (let i = (this.length >> 1) - 1; i >= 0; i--) this._down(i)
     }
+  }
+
+  requeue() {
+    const tmp = []
+    while (this.length) {
+      tmp.push(this.pop())
+    }
+    tmp.forEach((n) => this.push(n))
+    console.log("requeue", this.data.map(edgeName).join())
   }
 
   push (item) {

@@ -10,6 +10,7 @@ import { edgeName, edgeShort, name } from './logging.js'
  */
 export const divideSegment = (se, p, queue) => {
   console.log(`split ${edgeName(se)} at ${name(p)}`)
+  // console.log(`split otherEvent`, edgeName(se.otherEvent))
   const r = new SweepEvent(p, false, se, se.isSubject)
   const l = new SweepEvent(p, true, se.otherEvent, se.isSubject)
 
@@ -33,7 +34,8 @@ export const divideSegment = (se, p, queue) => {
   queue.push(l)
   queue.push(r)
 
-  console.log("queue", queue.data.map(edgeName).join())
+  console.log("  queue", queue.data.map(edgeName).join())
+  queue.requeue()
 
   return queue
 }
