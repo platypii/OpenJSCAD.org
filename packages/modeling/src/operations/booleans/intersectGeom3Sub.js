@@ -1,6 +1,6 @@
 import * as geom3 from '../../geometries/geom3/index.js'
 
-import { Tree } from './trees/index.js'
+import { boolean } from './manifold/boolean3.js'
 
 import { mayOverlap } from './mayOverlap.js'
 
@@ -16,17 +16,5 @@ export const intersectGeom3Sub = (geometry1, geometry2) => {
     return geom3.create() // empty geometry
   }
 
-  const a = new Tree(geom3.toPolygons(geometry1))
-  const b = new Tree(geom3.toPolygons(geometry2))
-
-  a.invert()
-  b.clipTo(a)
-  b.invert()
-  a.clipTo(b)
-  b.clipTo(a)
-  a.addPolygons(b.allPolygons())
-  a.invert()
-
-  const newPolygons = a.allPolygons()
-  return geom3.create(newPolygons)
+  return boolean(geometry1, geometry2, 'intersect')
 }

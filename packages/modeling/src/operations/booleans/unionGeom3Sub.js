@@ -1,6 +1,6 @@
 import * as geom3 from '../../geometries/geom3/index.js'
 
-import { Tree } from './trees/index.js'
+import { boolean } from './manifold/boolean3.js'
 
 import { mayOverlap } from './mayOverlap.js'
 
@@ -15,18 +15,7 @@ export const unionGeom3Sub = (geometry1, geometry2) => {
     return unionForNonIntersecting(geometry1, geometry2)
   }
 
-  const a = new Tree(geom3.toPolygons(geometry1))
-  const b = new Tree(geom3.toPolygons(geometry2))
-
-  a.clipTo(b, false)
-  // b.clipTo(a, true); // ERROR: doesn't work
-  b.clipTo(a)
-  b.invert()
-  b.clipTo(a)
-  b.invert()
-
-  const newPolygons = a.allPolygons().concat(b.allPolygons())
-  return geom3.create(newPolygons)
+  return boolean(geometry1, geometry2, 'add')
 }
 
 // Like union, but when we know that the two solids are not intersecting

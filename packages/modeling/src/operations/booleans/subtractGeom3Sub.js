@@ -1,6 +1,6 @@
 import * as geom3 from '../../geometries/geom3/index.js'
 
-import { Tree } from './trees/index.js'
+import { boolean } from './manifold/boolean3.js'
 
 import { mayOverlap } from './mayOverlap.js'
 
@@ -16,15 +16,5 @@ export const subtractGeom3Sub = (geometry1, geometry2) => {
     return geom3.clone(geometry1)
   }
 
-  const a = new Tree(geom3.toPolygons(geometry1))
-  const b = new Tree(geom3.toPolygons(geometry2))
-
-  a.invert()
-  a.clipTo(b)
-  b.clipTo(a, true)
-  a.addPolygons(b.allPolygons())
-  a.invert()
-
-  const newPolygons = a.allPolygons()
-  return geom3.create(newPolygons)
+  return boolean(geometry1, geometry2, 'subtract')
 }
