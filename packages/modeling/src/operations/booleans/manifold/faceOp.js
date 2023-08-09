@@ -9,7 +9,7 @@
  */
 
 import * as vec3 from '../../../maths/vec3/index.js'
-// import { triangulateIdx } from './triangulator/polygon.js'
+import { triangulateIdx } from './triangulator/polygon.js'
 import { CCW, dot, getAxisAlignedProjection } from './utils.js'
 
 /**
@@ -116,11 +116,11 @@ export const face2Tri = (inP, faceEdge, halfedgeRef) => {
       const projection = getAxisAlignedProjection(normal)
       const polys = face2Polygons(inP, face, projection, faceEdge)
 
-      // TODO: triangulate the polygons
-      // const newTris = triangulateIdx(polys, inP.precision)
-      // newTris.forEach((tri) => {
-      //   addTri(face, tri, normal, halfedgeRef[firstEdge])
-      // })
+      // triangulate the polygons
+      const newTris = triangulateIdx(polys, inP.precision)
+      newTris.forEach((tri) => {
+        addTri(face, tri, normal, halfedgeRef[firstEdge])
+      })
     }
   }
   inP.faceNormal = triNormal.slice() // Assuming a move operation is required?

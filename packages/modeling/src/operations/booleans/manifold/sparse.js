@@ -143,6 +143,7 @@ export class SparseIndices {
       }
       return acc
     }, { prevKey: null, sum: 0 })
+
     if (acc.prevKey !== null) {
       w03vert.push(acc.prevKey)
       w03val.push(acc.sum)
