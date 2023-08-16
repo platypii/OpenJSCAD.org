@@ -58,13 +58,36 @@ const edgeCollisions = (P, Q) => {
  * These operations are optimized to produce nearly-instant results if either
  * input is empty or their bounding boxes do not overlap.
  *
+ * @param {Geom3} geomP
+ * @param {Geom3} geomQ
  * @param {string} op the type of operation to perform
  */
 export const boolean = (geomP, geomQ, op) => {
+  // Early out if bounding boxes do not overlap
+  if (!mayOverlap(geomP, geomQ)) {
+    console.log('No overlap, early out')
+    const polyP = geom3.toPolygons(geomP)
+    const polyQ = geom3.toPolygons(geomQ)
+    if (op === 'add') {
+      return geom3.create(polyP.concat(polyQ))
+    } else if (op === 'subtract') {
+      return geom3.create(polyP)
+    } else if (op === 'intersect') {
+      return geom3.create()
+    }
+  }
+
+  // TODO: early out for empty inputs
+
   const manifold = booleanManifold(geomP, geomQ, op)
   return manifold.toGeometry()
 }
 
+/**
+ * @param {Geom3} geomP
+ * @param {Geom3} geomQ
+ * @param {string} op - type of operation to perform
+ */
 const booleanManifold = (geomP, geomQ, op) => {
   let p1q2
   let p2q1
@@ -78,15 +101,6 @@ const booleanManifold = (geomP, geomQ, op) => {
   // Convert JSCAD to manifold
   const inP = new Manifold(geomP)
   const inQ = new Manifold(geomQ)
-
-  if (!mayOverlap(geomP, geomQ)) {
-    console.log('No overlap, early out')
-    p1q2 = new SparseIndices(0)
-    p2q1 = new SparseIndices(0)
-    w03 = new Array(geom3.toPoints(geomP).length).fill(0)
-    w30 = new Array(geom3.toPoints(geomQ).length).fill(0)
-    return result({ op, inP, inQ, p1q2, p2q1, x12, x21, v12, v21, w03, w30 })
-  }
 
   const expandP = op === 'add' ? 1 : -1
   // Symbolic perturbation:

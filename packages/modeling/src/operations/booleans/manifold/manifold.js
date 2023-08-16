@@ -14,7 +14,7 @@ import { generalize } from '../../modifiers/generalize.js'
 import * as bbox from './bbox.js'
 import { Collider } from './collider.js'
 import { getFaceBoxMorton, kNoCode, morton } from './morton.js'
-import { CCW, dot, getAxisAlignedProjection, permute } from './utils.js'
+import { CCW, dot, getAxisAlignedProjection, permute, reserveIDs } from './utils.js'
 
 export class Manifold {
   constructor (geometry) {
@@ -41,9 +41,10 @@ export class Manifold {
     this.calculateBBox()
     // this.splitPinchedVerts()
     this.calculateNormals()
-    // this.initializeOriginal()
+    this.meshRelation.originalID = reserveIDs(1)
+    this.initializeOriginal()
     // this.createFaces() // TODO
-    // this.simplifyTopology()
+    // simplifyTopology(this) // TODO?
     // this.setPrecision(precision)
     this.finish()
   }
@@ -77,11 +78,29 @@ export class Manifold {
     }))
   }
 
+  initializeOriginal () {
+    const meshID = this.meshRelation.originalID
+    // Don't initialize if it's not an original
+    if (meshID < 0) return
+    for (let i = 0; i < this.numTri(); i++) {
+      this.meshRelation.triRef[i] = { meshID, originalID: meshID, tri: i }
+    }
+
+    this.meshRelation.triRef.forEach((halfedge, i) => {
+      console.log(`InitializeOriginal POST triRef[${i}]`, halfedge)
+    })
+
+    // TODO: meshIDtransform stuff?
+    // this.meshRelation.meshIDtransform.clear()
+    // this.meshRelation.meshIDtransform[meshID] = { meshID }
+  }
+
   /**
    * @param {Array} triVerts
    */
   createHalfedges (triVerts) {
-    const numHalfedge = this.halfedge.length
+    const numTri = triVerts.length
+    const numHalfedge = 3 * numTri
     const edges = []
     const ids = Array.from({ length: numHalfedge }, (_, i) => i)
     triVerts.forEach((triVert, index) => {
@@ -370,8 +389,11 @@ export class Manifold {
       const vertices = []
       for (let j = 0; j < 3; j++) {
         const vert = this.vertPos[this.halfedge[3 * i + j].startVert]
+        if (vert === undefined) continue // TODO: should be filtered before this?
         vertices.push(vert)
       }
+      if (vertices.length === 0) continue // TODO: should be filtered before this?
+      if (vertices.length !== 3) throw new Error('triangle must have 3 vertices')
       triangles.push({ vertices })
     }
     return geom3.create(triangles)

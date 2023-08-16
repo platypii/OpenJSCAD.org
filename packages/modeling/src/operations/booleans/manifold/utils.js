@@ -93,3 +93,20 @@ export const dot = (mat32, vec) => vec2.fromValues(
   mat32[0][0] * vec[0] + mat32[1][0] * vec[1] + mat32[2][0] * vec[2],
   mat32[0][1] * vec[0] + mat32[1][1] * vec[1] + mat32[2][1] * vec[2]
 )
+
+/**
+ * @param {number} current
+ * @returns {number}
+ */
+export const nextHalfedge = (current) => {
+  current++
+  if (current % 3 === 0) current -= 3
+  return current
+}
+
+export let meshIDCounter = 1
+export const reserveIDs = (n) => {
+  const pre = meshIDCounter
+  meshIDCounter += n
+  return pre
+}

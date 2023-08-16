@@ -12,9 +12,10 @@
 
 import * as vec3 from '../../../maths/vec3/index.js'
 import * as bbox from './bbox.js'
-import { Manifold } from './manifold.js'
+import { simplifyTopology } from './edgeOp.js'
 import { face2Tri } from './faceOp.js'
-import { absSum, isForward } from './utils.js'
+import { Manifold } from './manifold.js'
+import { absSum, isForward, meshIDCounter, reserveIDs } from './utils.js'
 
 const intermediateChecks = true // TODO
 
@@ -181,9 +182,10 @@ export const result = (op, inP, inQ, p1q2, p2q1, x12, x21, v12, v21, w03, w30) =
     // if (!outR.isManifold()) throw new Error('triangulated mesh is not manifold!')
   }
 
-  // const refPQ = updateReference(outR, inP, inQ, invertQ)
+  reserveIDs(1) // TODO: called elsewhere in manifold, but this lets ids match
+  const refPQ = updateReference(outR, inP, inQ)
 
-  // outR.simplifyTopology() // TODO
+  simplifyTopology(outR)
 
   // createProperties(outR, refPQ, inP, inQ) // TODO
 
@@ -620,4 +622,26 @@ const countNewVerts = (countP, countQ, halfedges) => (edgeP, faceQ, inclusion) =
   countP[half.face] += inclusion
   const pair = halfedges[half.pairedHalfedge]
   countP[pair.face] += inclusion
+}
+
+/**
+ * @param {Manifold} outR
+ * @param {Manifold} inP
+ * @param {Manifold} inQ
+ */
+const updateReference = (outR, inP, inQ) => {
+  const refPQ = outR.meshRelation.triRef
+  const offsetQ = meshIDCounter
+
+  refPQ.forEach((triRef) => {
+    // MapTriRef
+    const tri = triRef.tri
+    const PQ = triRef.meshID === 0
+    triRef = PQ ? inP.meshRelation.triRef[tri] : inQ.meshRelation.triRef[tri]
+    if (!PQ) triRef.meshID += offsetQ
+  })
+
+  // TODO: meshIDtransform stuff?
+
+  return refPQ
 }
