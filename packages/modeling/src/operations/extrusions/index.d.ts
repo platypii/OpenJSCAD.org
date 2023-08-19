@@ -1,3 +1,4 @@
+export { crossSection, CrossSectionOptions } from './crossSection.js'
 export { extrudeFromSlices, ExtrudeFromSlicesOptions } from './extrudeFromSlices.js'
 export { extrudeLinear, ExtrudeLinearOptions } from './extrudeLinear.js'
 export { extrudeRotate, ExtrudeRotateOptions } from './extrudeRotate.js'

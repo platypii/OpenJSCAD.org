@@ -1,6 +1,7 @@
 import * as poly3 from '../../geometries/poly3/index.js'
-import * as plane from '../../maths/plane/index.js'
 import * as vec3 from '../../maths/vec3/index.js'
+import * as vec4 from '../../maths/vec4/index.js'
+import { EPS } from '../../maths/constants.js'
 import { calculatePlane } from './calculatePlane.js'
 import { isA } from './isA.js'
 
@@ -27,7 +28,7 @@ export const validate = (object) => {
 
     // contours must be coplanar
     const contourPlane = poly3.plane(poly3.create(contour))
-    if (!plane.equals(slicePlane, contourPlane)) {
+    if (vec4.distance(slicePlane, contourPlane) > EPS) {
       throw new Error(`slice contours must be coplanar`)
     }
 

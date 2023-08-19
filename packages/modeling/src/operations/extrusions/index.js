@@ -5,6 +5,7 @@
  * @example
  * import { extrudeFromSlices, extrudeHelical, extrudeLinear, extrudeRotate, project } from '@jscad/modeling'
  */
+export { crossSection } from './crossSection.js'
 export { extrudeFromSlices } from './extrudeFromSlices.js'
 export { extrudeLinear } from './extrudeLinear.js'
 export { extrudeRotate } from './extrudeRotate.js'

@@ -6,6 +6,7 @@
 export { clone } from './clone.js'
 export { copy } from './copy.js'
 export { create } from './create.js'
+export { distance } from './distance.js'
 export { dot } from './dot.js'
 export { equals } from './equals.js'
 export { fromScalar } from './fromScalar.js'
