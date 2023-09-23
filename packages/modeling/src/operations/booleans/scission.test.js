@@ -38,20 +38,20 @@ test('scission: scission of complex geom3 produces expected geometry', (t) => {
 
   t.is(pc1, 512)
   t.is(pc2, 512)
-  t.is(pc3, 512) // due to retessellate
+  t.is(pc3, 1024)
 
   const result1 = scission(geometry3)
   t.is(result1.length, 2)
-  t.notThrows.skip(() => geom3.validate(result1[0]))
-  t.notThrows.skip(() => geom3.validate(result1[1]))
-  t.is(measureArea(result1[0]), 7720.0306508548)
-  t.is(measureArea(result1[1]), 3860.0153254273987)
-  t.is(measureVolume(result1[0]), 18745.166004060953)
-  t.is(measureVolume(result1[1]), 9372.583002030477)
+  t.notThrows(() => geom3.validate(result1[0]))
+  t.notThrows(() => geom3.validate(result1[1]))
+  t.is(measureArea(result1[0]), 7720.030650854779)
+  t.is(measureArea(result1[1]), 3860.015325427402)
+  t.is(measureVolume(result1[0]), 18745.16600406094)
+  t.is(measureVolume(result1[1]), 9372.583002030491)
 
   const rc1 = geom3.toPolygons(result1[0]).length
   const rc2 = geom3.toPolygons(result1[1]).length
 
-  t.is(rc1, 256)
-  t.is(rc2, 256)
+  t.is(rc1, 512)
+  t.is(rc2, 512)
 })

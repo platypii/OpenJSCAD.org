@@ -1,6 +1,8 @@
 import * as vec2 from '../../../maths/vec2/index.js'
 import * as vec3 from '../../../maths/vec3/index.js'
 
+export const kTolerance = 1e-5
+
 /**
  * Permutes an array according to a given permutation.
  * @param {Array} array - The array to permute.

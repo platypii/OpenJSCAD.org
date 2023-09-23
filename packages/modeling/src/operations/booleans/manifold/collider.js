@@ -35,7 +35,6 @@ export class Collider {
   constructor (leafBB, leafMorton) {
     if (leafBB.length !== leafMorton.length) throw new Error('Vectors must be the same length')
     const numNodes = 2 * leafBB.length - 1
-    console.log('Collider', leafBB.length, 'numNodes', numNodes)
 
     // assign and allocate members
     this.nodeBBox = new Array(numNodes).fill().map(() => bbox.create())

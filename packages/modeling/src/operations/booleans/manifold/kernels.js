@@ -8,7 +8,7 @@ import * as vec3 from '../../../maths/vec3/index.js'
 import { interpolate } from './interpolate.js'
 import { intersect } from './intersect.js'
 import { SparseIndices } from './sparse.js'
-import { isForward } from './utils.js'
+import { isForward, permute } from './utils.js'
 
 /**
  * @typedef {import('./manifold.js').Halfedge} Halfedge
@@ -58,9 +58,7 @@ const Kernel02 = (vertPosP, inQ, forward, expandP, vertNormalP) => (p0, q2) => {
       }
     }
 
-    const syz01 = Shadow01(p0, q1F, vertPosP, inQ, expandP, vertNormalP, !forward)
-    const s01 = syz01[0]
-    const yz01 = syz01[1]
+    const [s01, yz01] = Shadow01(p0, q1F, vertPosP, inQ, expandP, vertNormalP, !forward)
 
     if (Number.isFinite(yz01[0])) {
       s02 += s01 * (forward === isForward(edge) ? -1 : 1)
@@ -94,9 +92,12 @@ const Kernel02 = (vertPosP, inQ, forward, expandP, vertNormalP) => (p0, q2) => {
 const Kernel11 = (inP, inQ, expandP) => {
   const normalP = inP.vertNormal
   return (xyzz11, s11, p1, q1) => {
+    // For pRL[k], qRL[k], k==0 is the left and k==1 is the right.
     let k = 0
     const pRL = [vec3.create(), vec3.create()]
     const qRL = [vec3.create(), vec3.create()]
+    // Either the left or right must shadow, but not both. This ensures the
+    // intersection is between the left and right.
     let shadows = false
     s11 = 0
 
@@ -105,6 +106,7 @@ const Kernel11 = (inP, inQ, expandP) => {
     for (let i = 0; i < 2; i++) {
       const [s01, yz01] = Shadow01(p0[i], q1, inP.vertPos, inQ, expandP, normalP, false)
 
+      // If the value is NaN, then these do not overlap.
       if (Number.isFinite(yz01[0])) {
         s11 += s01 * (i === 0 ? -1 : 1)
         if (k < 2 && (k === 0 || (s01 !== 0) !== shadows)) {
@@ -427,8 +429,13 @@ export const Winding03 = (inP, p0q2, s02, reverse) => {
   let w03 = new Array(inP.vertPos.length).fill(0)
 
   // sort p0q2 by key
-  if (!p0q2.isSorted()) {
-    p0q2.sort(s02)
+  if (!p0q2.isSorted(reverse)) {
+    // sort_by_key
+    const p = p0q2.get(reverse) // p or q
+    const order = Array.from({ length: p.length }, (_, i) => i)
+    order.sort((a, b) => p[a] - p[b])
+    permute(p, order)
+    permute(s02, order)
   }
 
   // generate winding numbers

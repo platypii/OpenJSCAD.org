@@ -13,8 +13,10 @@ import * as vec3 from '../../../maths/vec3/index.js'
 import { generalize } from '../../modifiers/generalize.js'
 import * as bbox from './bbox.js'
 import { Collider } from './collider.js'
+import { connectedComponents } from './connectedComponents.js'
+import { simplifyTopology } from './edgeOp.js'
 import { getFaceBoxMorton, kNoCode, morton } from './morton.js'
-import { CCW, dot, getAxisAlignedProjection, permute, reserveIDs } from './utils.js'
+import { CCW, dot, getAxisAlignedProjection, isForward, kTolerance, permute, reserveIDs } from './utils.js'
 
 export class Manifold {
   constructor (geometry) {
@@ -42,11 +44,12 @@ export class Manifold {
     // this.splitPinchedVerts()
     this.calculateNormals()
     this.meshRelation.originalID = reserveIDs(1)
-    this.initializeOriginal()
-    // this.createFaces() // TODO
-    // simplifyTopology(this) // TODO?
-    // this.setPrecision(precision)
     this.finish()
+    this.initializeOriginal()
+    this.createFaces()
+    simplifyTopology(this)
+    // this.setPrecision(precision)
+    // this.finish() // finish again?
   }
 
   calculateBBox () {
@@ -85,10 +88,6 @@ export class Manifold {
     for (let i = 0; i < this.numTri(); i++) {
       this.meshRelation.triRef[i] = { meshID, originalID: meshID, tri: i }
     }
-
-    this.meshRelation.triRef.forEach((halfedge, i) => {
-      console.log(`InitializeOriginal POST triRef[${i}]`, halfedge)
-    })
 
     // TODO: meshIDtransform stuff?
     // this.meshRelation.meshIDtransform.clear()
@@ -342,19 +341,23 @@ export class Manifold {
    * Updates the vertex normals and face normals if necessary.
    */
   assignNormals (face, calculateTriNormal) {
-    const triVerts = [0, 1, 2].map((i) => this.halfedge[3 * face + i].startVert)
+    const triVerts = []
+    for (let i = 0; i < 3; i++) {
+      triVerts[i] = this.halfedge[3 * face + i].startVert
+      this.vertNormal[triVerts[i]] = vec3.create()
+    }
 
-    const edge = [0, 1, 2].map((i) => {
+    const edge = []
+    for (let i = 0; i < 3; i++) {
       const j = (i + 1) % 3
       const v1 = this.vertPos[triVerts[i]]
       const v2 = this.vertPos[triVerts[j]]
       const out = vec3.create()
-      return vec3.normalize(out, vec3.subtract(out, v2, v1))
-    })
+      edge[i] = vec3.normalize(out, vec3.subtract(out, v2, v1))
+    }
 
     if (calculateTriNormal) {
-      this.faceNormal[face] = vec3.create()
-      vec3.normalize(this.faceNormal[face], vec3.cross(this.faceNormal[face], edge[0], edge[1]))
+      vec3.normalize(this.faceNormal[face], vec3.cross(vec3.create(), edge[0], edge[1]))
       if (isNaN(this.faceNormal[face][0])) this.faceNormal[face] = [0, 0, 1]
     }
 
@@ -449,4 +452,141 @@ export class Manifold {
     }
     return count
   }
+
+  /**
+   * This function condenses all coplanar faces in the relation, and
+   * collapses those edges. In the process the relation to ancestor meshes is lost
+   * and this new Manifold is marked an original. Properties are preserved, so if
+   * they do not match across an edge, that edge will be kept.
+   */
+  createFaces () {
+    const face2face = this.halfedge.map(() => [])
+    const vert2vert = this.halfedge.map(() => [])
+    const numTri = this.numTri()
+    const triArea = Array(numTri)
+
+    // Assuming autoPolicy and other relevant methods are defined elsewhere
+    this.halfedge.forEach((halfedge, i) => {
+      this.coplanarEdge(triArea, face2face[i], vert2vert[i], i)
+    })
+
+    const components = []
+    const numComponent = getLabels(components, face2face, numTri)
+
+    const comp2tri = Array(numComponent).fill(-1)
+    for (let tri = 0; tri < numTri; tri++) {
+      const comp = components[tri]
+      const current = comp2tri[comp]
+      if (current < 0 || triArea[tri] > triArea[current]) {
+        comp2tri[comp] = tri
+        triArea[comp] = triArea[tri]
+      }
+    }
+
+    for (let i = 0; i < numTri; i++) {
+      this.checkCoplanarity(comp2tri, components, i)
+    }
+
+    this.meshRelation.triRef.forEach((triRef, tri) => {
+      const referenceTri = comp2tri[components[tri]]
+      if (referenceTri >= 0) {
+        triRef.tri = referenceTri
+      }
+    })
+  }
+
+  coplanarEdge (triArea, face2face, vert2vert, edgeIdx) {
+    const edge = this.halfedge[edgeIdx]
+    const pair = this.halfedge[edge.pairedHalfedge]
+
+    const triRef = this.meshRelation.triRef
+    if (triRef[edge.face].meshID !== triRef[pair.face].meshID) return
+
+    const base = this.vertPos[edge.startVert]
+    const baseNum = edgeIdx - 3 * edge.face
+    const jointNum = edge.pairedHalfedge - 3 * pair.face
+
+    // TODO: triProp stuff?
+
+    if (!isForward(edge)) return
+
+    const edgeNum = baseNum === 0 ? 2 : baseNum - 1
+    const pairNum = jointNum === 0 ? 2 : jointNum - 1
+    const jointVec = vec3.subtract(vec3.create(), this.vertPos[pair.startVert], base)
+    const edgeVec = vec3.subtract(vec3.create(), this.vertPos[this.halfedge[3 * edge.face + edgeNum].startVert], base)
+    const pairVec = vec3.subtract(vec3.create(), this.vertPos[this.halfedge[3 * pair.face + pairNum].startVert], base)
+
+    const length = vec3.length(jointVec) > vec3.length(edgeVec) ? vec3.length(jointVec) : vec3.length(edgeVec)
+    const lengthPair = vec3.length(jointVec) > vec3.length(pairVec) ? vec3.length(jointVec) : vec3.length(pairVec)
+    let normal = vec3.cross(vec3.create(), jointVec, edgeVec)
+    const area = vec3.length(normal)
+    const areaPair = vec3.length(vec3.cross(vec3.create(), pairVec, jointVec))
+    triArea[edge.face] = area
+    triArea[pair.face] = areaPair
+
+    if (area < length * this.precision || areaPair < lengthPair * this.precision) return
+
+    const volume = Math.abs(vec3.dot(normal, pairVec))
+
+    if (volume > Math.max(area, areaPair) * this.precision) return
+
+    if (area > 0) {
+      vec3.scale(normal, normal, area)
+      // TODO: prop stuff?
+    }
+
+    face2face[0] = edge.face
+    face2face[1] = pair.face
+  }
+
+  /**
+   * @param {number[]} comp2tri
+   * @param {number[]} components
+   * @param {number} tri
+   */
+  checkCoplanarity (comp2tri, components, tri) {
+    const component = components[tri]
+    const referenceTri = comp2tri[component]
+    if (referenceTri < 0 || referenceTri === tri) return
+
+    const origin = this.vertPos[this.halfedge[3 * referenceTri].startVert]
+    const normal = vec3.normalize(vec3.create(), vec3.cross(
+      vec3.create(),
+      vec3.subtract(vec3.create(), this.vertPos[this.halfedge[3 * referenceTri + 1].startVert], origin),
+      vec3.subtract(vec3.create(), this.vertPos[this.halfedge[3 * referenceTri + 2].startVert], origin)
+    ))
+
+    for (let i = 0; i < 3; i++) {
+      const vert = this.vertPos[this.halfedge[3 * tri + i].startVert]
+      const dot = vec3.dot(normal, vec3.subtract(vec3.create(), vert, origin))
+      // If any component vertex is not coplanar with the component's reference
+      // triangle, unmark the entire component so that none of its triangles are
+      // marked coplanar.
+      if (Math.abs(dot) > this.precision) {
+        comp2tri[component] = -1
+        break
+      }
+    }
+  }
+}
+
+/**
+ * @param {number[]} components
+ * @param {number[][]} edges
+ * @param {number} numNodes
+ * @returns {number}
+ */
+const getLabels = (components, edges, numNodes) => {
+  const graph = new Map() // map from vertex to edges
+  for (let i = 0; i < numNodes; i++) {
+    graph.set(i, [])
+  }
+  edges.forEach((edge) => {
+    if (edge[0] >= 0) {
+      // bidirectional
+      graph.get(edge[0]).push(edge[1])
+      graph.get(edge[1]).push(edge[0])
+    }
+  })
+  return connectedComponents(components, graph)
 }

@@ -1,7 +1,5 @@
 import { flatten } from '../../utils/flatten.js'
 
-import { retessellate } from '../modifiers/retessellate.js'
-
 import { subtractGeom3Sub } from './subtractGeom3Sub.js'
 
 /*
@@ -18,6 +16,5 @@ export const subtractGeom3 = (...geometries) => {
     newGeometry = subtractGeom3Sub(newGeometry, geometry)
   })
 
-  newGeometry = retessellate(newGeometry)
   return newGeometry
 }

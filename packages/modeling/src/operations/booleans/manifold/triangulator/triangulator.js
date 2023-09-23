@@ -31,7 +31,6 @@ export class Triangulator {
     this.reflexChain.pop()
     let vj = this.reflexChain.slice(-1)[0]
     if (this.onRight === onRight && !last) {
-      console.log('same chain')
       let ccw = CCW(vi.pos, vj.pos, vTop.pos, this.precision)
       while (ccw === (this.onRight ? 1 : -1) || ccw === 0) {
         this.addTriangle(triangles, vi, vj, vTop)
@@ -44,7 +43,6 @@ export class Triangulator {
       this.reflexChain.push(vTop)
       this.reflexChain.push(vi)
     } else {
-      console.log('different chain')
       this.onRight = !this.onRight
       let vLast = vTop
       while (this.reflexChain.length > 0) {
@@ -64,6 +62,5 @@ export class Triangulator {
     const tri = [v0.meshIdx, v1.meshIdx, v2.meshIdx]
     triangles.push(tri)
     this.trianglesOutput++
-    console.log('addTri', tri)
   }
 }

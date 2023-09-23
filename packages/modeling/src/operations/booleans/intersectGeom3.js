@@ -1,7 +1,5 @@
 import { flatten } from '../../utils/flatten.js'
 
-import { retessellate } from '../modifiers/retessellate.js'
-
 import { intersectGeom3Sub } from './intersectGeom3Sub.js'
 
 /*
@@ -18,6 +16,5 @@ export const intersectGeom3 = (...geometries) => {
     newGeometry = intersectGeom3Sub(newGeometry, geometry)
   })
 
-  newGeometry = retessellate(newGeometry)
   return newGeometry
 }

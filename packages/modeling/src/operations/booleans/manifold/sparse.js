@@ -76,15 +76,13 @@ export class SparseIndices {
 
   /**
    * Sort by p then q.
-   * @param {number[]} [arr] - optional array to permute in the same way
    */
-  sort (arr) {
+  sort () {
     // Sort by p then q
     const order = Array.from({ length: this.length }, (_, i) => i)
     order.sort((a, b) => this.p[a] - this.p[b] || this.q[a] - this.q[b])
     permute(this.p, order)
     permute(this.q, order)
-    if (arr) permute(arr, order)
   }
 
   unique () {

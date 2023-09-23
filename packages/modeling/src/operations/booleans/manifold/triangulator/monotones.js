@@ -1,10 +1,8 @@
 import * as vec2 from '../../../../maths/vec2/index.js'
-import { CCW } from '../utils.js'
+import { CCW, kTolerance } from '../utils.js'
 import { EdgePair } from './edgePair.js'
 import { Triangulator } from './triangulator.js'
 import { VertAdj } from './vertAdj.js'
-
-const kTolerance = 1e-5
 
 /**
  * The class first turns input polygons into monotone polygons, then
@@ -72,7 +70,6 @@ export class Monotones {
     let trianglesLeft = this.monotones.length
     let start = this.monotones[0]
     while (start !== undefined) {
-      console.log(start.meshIdx)
       const triangulator = new Triangulator(start, this.precision)
       start.setProcessed(true)
       let vR = start.right
@@ -80,18 +77,15 @@ export class Monotones {
       while (vR !== vL) {
         // Process the neighbor vert that is next in the sweep-line.
         if (vR.index < vL.index) {
-          console.log(vR.meshIdx)
           triangulator.processVert(vR, true, false, triangles)
           vR.setProcessed(true)
           vR = vR.right
         } else {
-          console.log(vL.meshIdx)
           triangulator.processVert(vL, false, false, triangles)
           vL.setProcessed(true)
           vL = vL.left
         }
       }
-      console.log(vR.meshIdx)
       triangulator.processVert(vR, true, true, triangles)
       vR.setProcessed(true)
       // validation
@@ -190,18 +184,15 @@ export class Monotones {
         const westIndex = this.activePairs.indexOf(westPair)
         if (westPair === eastPair) {
           // facing in
-          console.log('End')
           this.closeEnd(vert)
           return 'End'
         } else if (westIndex !== this.activePairs.length - 1 && this.activePairs[westIndex + 1] === eastPair) {
           // facing out
-          console.log('Merge')
           this.closeEnd(vert)
           // westPair will be removed and eastPair takes over.
           this.setVWest(eastPair, westPair.vWest)
           return 'Merge'
         } else { // not neighbors
-          console.log('Skip')
           return 'Skip'
         }
       } else {
@@ -209,11 +200,9 @@ export class Monotones {
             !eastPair.vEast.right.isPast(vert, this.precision) &&
             vert.isPast(eastPair.vEast, this.precision) &&
             vert.pos[0] > eastPair.vEast.right.pos[0] + this.precision) {
-          console.log('Skip WEST')
           return 'Skip'
         }
         this.setVWest(eastPair, vert)
-        console.log('WestSide')
         return 'WestSide'
       }
     } else {
@@ -222,14 +211,11 @@ export class Monotones {
             !westPair.vWest.left.isPast(vert, this.precision) &&
             vert.isPast(westPair.vWest, this.precision) &&
             vert.pos[0] < westPair.vWest.left.pos[0] - this.precision) {
-          console.log('Skip EAST')
           return 'Skip'
         }
         this.setVEast(westPair, vert)
-        console.log('EastSide')
         return 'EastSide'
       } else {
-        console.log('Start')
         return 'Start'
       }
     }
@@ -273,8 +259,6 @@ export class Monotones {
         insertAt++
       }
 
-      console.log('mesh_idx =', vert.meshIdx)
-
       if (vert.processed()) continue
 
       if (skipped.length !== 0 && vert.isPast(skipped[skipped.length - 1], this.precision)) {
@@ -300,7 +284,6 @@ export class Monotones {
         this.setVEast(newPair, vert)
         const hole = this.isHole(vert)
         if (hole === 0 && this.isColinearPoly(vert)) {
-          console.log('skip colinear polygon')
           this.skipPoly(vert)
           this.activePairs.shift() // delete first element
         }
@@ -324,7 +307,6 @@ export class Monotones {
         }
 
         skipped.push(vert)
-        console.log('skipping vert', vert.pos, vert.meshIdx)
 
         // If a new pair was added, remove it
         if (newPair !== undefined) {
@@ -386,7 +368,7 @@ export class Monotones {
    */
   splitVerts (north, south) {
     // at split events, add duplicate vertices to end of list and reconnect
-    console.log(`split from ${north.meshIdx} to ${south.meshIdx}`)
+    // console.log(`split from ${north.meshIdx} to ${south.meshIdx}`)
 
     // Insert a duplicate of north at the position of north
     const northIndex = this.monotones.indexOf(north)
@@ -419,16 +401,6 @@ export class Monotones {
    * (though this is now the opposite order from the forward sweep).
    */
   sweepBack () {
-    console.log('\n\nSWEEP BACK\n\n')
-
-    // print monotones
-    this.monotones.forEach((m) => {
-      console.log('monotones BACK', {
-        pos: m.pos,
-        mesh_idx: m.meshIdx
-      })
-    })
-
     this.monotones.forEach((vert) => vert.setProcessed(false))
 
     let vert
@@ -439,8 +411,6 @@ export class Monotones {
       }
       vertIndex--
       vert = this.monotones[vertIndex]
-
-      console.log('mesh_idx =', vert.meshIdx)
 
       if (vert.processed()) continue
 
@@ -596,7 +566,29 @@ export class Monotones {
    * @return {boolean}
    */
   isColinearPoly (start) {
-    throw new Error('not implemented')
+    let vert = start
+    let left = start
+    let right = left.right
+    // Find the longest edge to improve error
+    let length2 = 0
+    while (right !== start) {
+      const edge = vec2.subtract(vec2.create(), left.pos, right.pos)
+      const l2 = vec2.dot(edge, edge)
+      if (l2 > length2) {
+        length2 = l2
+        vert = left
+      }
+      left = right
+      right = right.right
+    }
+
+    right = vert.right
+    left = vert.left
+    while (left !== vert) {
+      if (CCW(left.pos, vert.pos, right.pos, this.precision) !== 0) return false
+      left = left.left
+    }
+    return true
   }
 
   /**
@@ -665,7 +657,12 @@ export class Monotones {
       if (eastOf > 0 && isHole) return false
 
       if (eastOf >= 0 && !isHole) { // in the right place
-        this.activePairs.splice(potentialPairIndex, 0, ...this.activePairs.splice(this.activePairs.indexOf(inputPair), 1))
+        // move inputPair in front of potentialPair
+        const inputPairIndex = this.activePairs.indexOf(inputPair)
+        this.activePairs.splice(inputPairIndex, 1)
+        potentialPairIndex = this.activePairs.indexOf(potentialPair) // TODO: compute deterministically
+        this.activePairs.splice(potentialPairIndex, 0, inputPair)
+
         this.setEastCertainty(inputPair, this.activePairs[potentialPairIndex + 1], eastOf !== 0)
         return false
       }

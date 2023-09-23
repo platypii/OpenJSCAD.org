@@ -144,9 +144,9 @@ export const simplifyTopology = (inP) => {
     }
   }
 
-  if (numFlagged > 0) {
-    console.log(`found ${numFlagged} duplicate edges to split`)
-  }
+  // if (numFlagged > 0) {
+  //   console.log(`found ${numFlagged} duplicate edges to split`)
+  // }
 
   // short edge
   const scratchBuffer = []
@@ -162,9 +162,9 @@ export const simplifyTopology = (inP) => {
     }
   }
 
-  if (numFlagged > 0) {
-    console.log(`found ${numFlagged} short edges to collapse`)
-  }
+  // if (numFlagged > 0) {
+  //   console.log(`found ${numFlagged} short edges to collapse`)
+  // }
 
   // flag edge
   numFlagged = 0
@@ -179,9 +179,9 @@ export const simplifyTopology = (inP) => {
     }
   }
 
-  if (numFlagged > 0) {
-    console.log(`found ${numFlagged} colinear edges to collapse`)
-  }
+  // if (numFlagged > 0) {
+  //   console.log(`found ${numFlagged} colinear edges to collapse`)
+  // }
 
   // swappable edge
   numFlagged = 0
@@ -203,9 +203,9 @@ export const simplifyTopology = (inP) => {
     }
   }
 
-  if (numFlagged > 0) {
-    console.log(`found ${numFlagged} edges to swap`)
-  }
+  // if (numFlagged > 0) {
+  //   console.log(`found ${numFlagged} edges to swap`)
+  // }
 }
 
 const dedupeEdge = (inP, edge) => {
@@ -351,6 +351,11 @@ const removeIfFolded = (inP, edge) => {
   }
 }
 
+/**
+ * @param {object} inP
+ * @param {number} edge
+ * @param {number[]} edges
+ */
 const collapseEdge = (inP, edge, edges) => {
   const triRef = inP.meshRelation.triRef
   const toRemove = inP.halfedge[edge]
@@ -377,19 +382,20 @@ const collapseEdge = (inP, edge, edges) => {
   let start = inP.halfedge[tri1edge[1]].pairedHalfedge
   if (!shortEdge) {
     current = start
-    let refCheck = triRef[toRemove.pairedHalfedge / 3]
+    const toRemoveTri = Math.floor(toRemove.pairedHalfedge / 3) // integer division
+    let refCheck = triRef[toRemoveTri]
     let pLast = inP.vertPos[inP.halfedge[tri1edge[1]].endVert]
     while (current !== tri0edge[2]) {
       current = nextHalfedge(current)
       const pNext = inP.vertPos[inP.halfedge[current].endVert]
-      const tri = current / 3
+      const tri = Math.floor(current / 3) // integer division
       const ref = triRef[tri]
       const projection = getAxisAlignedProjection(inP.faceNormal[tri])
 
       // Don't collapse if the edge is not redundant (this may have changed due
       // to the collapse of neighbors).
       if (ref.meshID !== refCheck.meshID || ref.tri !== refCheck.tri) {
-        refCheck = triRef[edge / 3]
+        refCheck = triRef[Math.floor(edge / 3)]
         if (ref.meshID !== refCheck.meshID || ref.tri !== refCheck.tri) {
           return
         } else {
@@ -420,10 +426,6 @@ const collapseEdge = (inP, edge, edges) => {
   while (current !== tri0edge[2]) {
     current = nextHalfedge(current)
 
-    // Update the shifted triangles to the vertBary of endVert
-    const tri = current / 3 // TODO: Math.floor?
-    const vIdx = current - 3 * tri
-
     // TODO: Update properties if applicable
 
     const vert = inP.halfedge[current].endVert
@@ -432,7 +434,7 @@ const collapseEdge = (inP, edge, edges) => {
       if (vert == inP.halfedge[edges[i]].endVert) {
         formLoop(inP, edges[i], current)
         start = next
-        edges.resize(i)
+        edges.length = i
         break
       }
     }

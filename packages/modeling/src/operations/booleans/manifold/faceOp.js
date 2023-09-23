@@ -71,7 +71,6 @@ export const face2Tri = (inP, faceEdge, halfedgeRef) => {
         dot(projection, inP.vertPos[tri[2]]),
         inP.precision) >= 0
 
-      console.log('firstEdge', firstEdge, inP.halfedge[firstEdge])
       const tri0 = vec3.fromValues(
         inP.halfedge[firstEdge].startVert,
         inP.halfedge[firstEdge].endVert,
@@ -177,6 +176,5 @@ const face2Polygons = (inP, face, projection, faceEdge) => {
     thisEdge = result
     vertEdge.delete(next)
   }
-  console.log('face2polys', ...polys)
   return polys
 }

@@ -123,10 +123,10 @@ export const result = (op, inP, inQ, p1q2, p2q1, x12, x21, v12, v21, w03, w30) =
     duplicateVerts(outR.vertPos, i21[i], v21R[i], v21[i])
   }
 
-  console.log(nPv, 'verts from inP')
-  console.log(nQv, 'verts from inQ')
-  console.log(n12, 'new verts from edgesP -> facesQ')
-  console.log(n21, 'new verts from facesP -> edgesQ')
+  // console.log(nPv, 'verts from inP')
+  // console.log(nQv, 'verts from inQ')
+  // console.log(n12, 'new verts from edgesP -> facesQ')
+  // console.log(n21, 'new verts from facesP -> edgesQ')
 
   // Build up new polygonal faces from triangle intersections. At this point the
   // calculation switches from parallel to serial.
@@ -633,12 +633,14 @@ const updateReference = (outR, inP, inQ) => {
   const refPQ = outR.meshRelation.triRef
   const offsetQ = meshIDCounter
 
-  refPQ.forEach((triRef) => {
+  refPQ.forEach((triRef, i) => {
     // MapTriRef
     const tri = triRef.tri
-    const PQ = triRef.meshID === 0
-    triRef = PQ ? inP.meshRelation.triRef[tri] : inQ.meshRelation.triRef[tri]
-    if (!PQ) triRef.meshID += offsetQ
+    const pq = triRef.meshID === 0
+    triRef = pq ? inP.meshRelation.triRef[tri] : inQ.meshRelation.triRef[tri]
+    // update triRef
+    refPQ[i] = triRef
+    if (!pq) triRef.meshID += offsetQ
   })
 
   // TODO: meshIDtransform stuff?
