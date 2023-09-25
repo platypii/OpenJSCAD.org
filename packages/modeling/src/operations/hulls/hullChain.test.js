@@ -91,9 +91,9 @@ test('hullChain (three, geom3)', (t) => {
   let pts = geom3.toPoints(obs)
 
   t.notThrows.skip(() => geom3.validate(obs))
-  t.is(measureArea(obs), 266.1454764345133)
+  t.is(measureArea(obs), 266.14547643451334)
   t.is(measureVolume(obs), 239.2012987012987)
-  t.is(pts.length, 23)
+  t.is(pts.length, 48)
 
   // closed
   obs = hullChain(geometry1, geometry2, geometry3, geometry1)

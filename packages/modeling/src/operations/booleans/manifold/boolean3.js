@@ -13,6 +13,7 @@ import { result } from './booleanResult.js'
 import { SparseIndices } from './sparse.js'
 
 const halfedge2Tmp = (halfedge, halfedgeIdx) => {
+  if (!halfedge) return { halfedgeIdx: -1 } // TODO: avoid allocation
   if (halfedge.startVert >= halfedge.endVert) halfedgeIdx = -1
   return { ...halfedge, halfedgeIdx }
 }

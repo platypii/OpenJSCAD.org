@@ -286,6 +286,7 @@ export class Monotones {
         if (hole === 0 && this.isColinearPoly(vert)) {
           this.skipPoly(vert)
           this.activePairs.shift() // delete first element
+          continue
         }
         isHole = hole > 0
       }
@@ -328,14 +329,14 @@ export class Monotones {
 
       switch (type) {
         case 'WestSide':
-          nextAttached.push(vert.left)
+          nextAttached.unshift(vert.left)
           break
         case 'EastSide':
-          nextAttached.push(vert.right)
+          nextAttached.unshift(vert.right)
           break
         case 'Start':
-          nextAttached.push(vert.left)
-          nextAttached.push(vert.right)
+          nextAttached.unshift(vert.left)
+          nextAttached.unshift(vert.right)
           break
         case 'Merge':
           // mark merge as hole for sweep-back

@@ -58,7 +58,8 @@ const shortEdge = (inP, edge) => {
  * @returns {boolean}
  */
 const flagEdge = (inP, edge) => {
-  if (inP.halfedge[edge].pairedHalfedge < 0) return false
+  if (!inP.halfedge[edge]) return false
+  if (inP.halfedge[edge].pairedHalfedge < 0) throw new Error('unexpected pairedHalfedge ' + inP.halfedge[edge].pairedHalfedge)
   const triRef = inP.meshRelation.triRef
 
   // Flag redundant edges - those where the startVert is surrounded by only
@@ -85,7 +86,8 @@ const flagEdge = (inP, edge) => {
  * @returns {boolean}
  */
 const swappableEdge = (inP, edge) => {
-  if (inP.halfedge[edge].pairedHalfedge < 0) return false
+  if (!inP.halfedge[edge]) return false
+  if (inP.halfedge[edge].pairedHalfedge < 0) throw new Error('unexpected pairedHalfedge ' + inP.halfedge[edge].pairedHalfedge)
 
   let tri = inP.halfedge[edge].face
   let triedge = triOf(edge)
@@ -315,7 +317,7 @@ const collapseTri = (inP, triEdge) => {
   inP.halfedge[pair1].pairedHalfedge = pair2
   inP.halfedge[pair2].pairedHalfedge = pair1
   triEdge.forEach((i) => {
-    inP.halfedge[i] = { startVert: -1, endVert: -1, pairedHalfedge: -1, face: -1 }
+    inP.halfedge[i] = undefined
   })
 }
 
@@ -359,7 +361,9 @@ const removeIfFolded = (inP, edge) => {
 const collapseEdge = (inP, edge, edges) => {
   const triRef = inP.meshRelation.triRef
   const toRemove = inP.halfedge[edge]
-  if (toRemove.pairedHalfedge < 0) return
+  // manifold used -1, js we use undefined
+  if (!toRemove) return
+  if (toRemove.pairedHalfedge < 0) throw new Error('unexpected pairedHalfedge ' + toRemove.pairedHalfedge)
 
   const endVert = toRemove.endVert
   const tri0edge = triOf(edge)

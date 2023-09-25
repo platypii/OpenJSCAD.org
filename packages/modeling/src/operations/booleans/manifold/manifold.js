@@ -391,9 +391,11 @@ export class Manifold {
     for (let i = 0; i < this.numTri(); i++) {
       const vertices = []
       for (let j = 0; j < 3; j++) {
-        const vert = this.vertPos[this.halfedge[3 * i + j].startVert]
-        if (vert === undefined) continue // TODO: should be filtered before this?
-        vertices.push(vert)
+        // TODO: should be filtered before this?
+        if (this.halfedge[3 * i + j]) {
+          const vert = this.vertPos[this.halfedge[3 * i + j].startVert]
+          vertices.push(vert)
+        }
       }
       if (vertices.length === 0) continue // TODO: should be filtered before this?
       if (vertices.length !== 3) throw new Error('triangle must have 3 vertices')
