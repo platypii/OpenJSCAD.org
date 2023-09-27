@@ -1,6 +1,7 @@
 import * as vec2 from '../../../../maths/vec2/index.js'
 import { CCW, kTolerance } from '../utils.js'
 import { EdgePair } from './edgePair.js'
+import { PriorityQueue } from './priorityQueue.js'
 import { Triangulator } from './triangulator.js'
 import { VertAdj } from './vertAdj.js'
 
@@ -229,12 +230,12 @@ export class Monotones {
    */
   sweepForward () {
     // Reversed so that minimum element is at queue.top() / vector.back()
-    const cmp = (a, b) => b.pos[1] - a.pos[1] // compare y values
-    const nextAttached = [] // TODO: should be a priority queue
+    const cmp = (a, b) => b.pos[1] < a.pos[1] // compare y values
+    const nextAttached = new PriorityQueue(cmp)
 
     const starts = this.monotones.filter((v) => v.isStart())
 
-    starts.sort(cmp)
+    starts.sort((a, b) => b.pos[1] - a.pos[1])
 
     const skipped = []
     let insertAt = 0
@@ -243,13 +244,10 @@ export class Monotones {
       // fallback for completely degenerate polygons that have no starts
       let vert = this.monotones[insertAt]
 
-      // TODO: Use a priority queue instead of sorting
-      nextAttached.sort(cmp)
-
       const lastStart = starts[starts.length - 1]
-      if (nextAttached.length &&
+      if (nextAttached.size() &&
           (starts.length === 0 ||
-            !nextAttached[nextAttached.length - 1].isPast(lastStart, this.precision))) {
+            !nextAttached.top().isPast(lastStart, this.precision))) {
         // Prefer neighbors, which may process starts without needing a new pair
         vert = nextAttached.pop()
       } else if (starts.length > 0) {
@@ -267,7 +265,7 @@ export class Monotones {
 
       let type = this.processVert(vert)
 
-      let newPair = this.activePairs[this.activePairs.length - 1]
+      let newPair = undefined
       let isHole = false
       if (type === 'Start') {
         newPair = new EdgePair(
@@ -303,7 +301,7 @@ export class Monotones {
         if (insertAt >= this.monotones.length) {
           throw new Error('not geometrically valid, tried to skip final vert')
         }
-        if (nextAttached.length === 0 && starts.length === 0) {
+        if (nextAttached.size() === 0 && starts.length === 0) {
           throw new Error('not geometrically valid, tried to skip last queued vert')
         }
 
@@ -313,8 +311,8 @@ export class Monotones {
         if (newPair !== undefined) {
           const newPairIndex = this.activePairs.indexOf(newPair)
           this.activePairs.splice(newPairIndex, 1)
-          vert.westPair = undefined // TODO this.activePairs[this.activePairs.length - 1]
-          vert.eastPair = undefined // TODO this.activePairs[this.activePairs.length - 1]
+          vert.westPair = undefined
+          vert.eastPair = undefined
         }
         continue
       }
@@ -329,14 +327,14 @@ export class Monotones {
 
       switch (type) {
         case 'WestSide':
-          nextAttached.unshift(vert.left)
+          nextAttached.push(vert.left)
           break
         case 'EastSide':
-          nextAttached.unshift(vert.right)
+          nextAttached.push(vert.right)
           break
         case 'Start':
-          nextAttached.unshift(vert.left)
-          nextAttached.unshift(vert.right)
+          nextAttached.push(vert.left)
+          nextAttached.push(vert.right)
           break
         case 'Merge':
           // mark merge as hole for sweep-back
